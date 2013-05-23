@@ -1,4 +1,4 @@
-CSV-stream
+CSV-streamer
 ---------------
 
 This is code for reading CSV files. It is very simple and only tries to fill one single need : if someone hands you a CSV file and you
@@ -12,7 +12,7 @@ and simple but flexible interface.
 Installing
 ----------
 
-    npm install csv-stream
+    npm install csv-streamer
 
 
 Usage
@@ -21,7 +21,7 @@ Usually you just want to load that CSV-file :
 
 ```javascript
 var fs=require('fs');
-var CSVStream=require('csv-stream');
+var CSVStream=require('csv-streamer');
 var csv=new CSVStream({headers:true});
 
 csv.on('data',function(line){
