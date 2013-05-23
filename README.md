@@ -56,4 +56,6 @@ Made by Alex Scheel Meyer. Released to the public domain.
 Uses CSVToArray function by [Ben Nadel](http://www.bennadel.com/blog/1504-Ask-Ben-Parsing-CSV-Strings-With-Javascript-Exec-Regular-Expression-Command.htm)
 
 Inspired by the [node-csv](https://github.com/voodootikigod/node-csv) code by [Chris Williams](https://github.com/voodootikigod)
+
+Also see [csv-stream](https://github.com/lbdremy/node-csv-stream)
  
