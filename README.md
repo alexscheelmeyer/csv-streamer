@@ -49,6 +49,8 @@ CSV stream. Something like [this](http://technosophos.com/content/using-string-s
 
 You can also have a look at the test folder to see some examples of using the API.
 
+In my testing it seems to be around 33% faster compared to [node-csv](https://github.com/voodootikigod/node-csv) code by [Chris Williams](https://github.com/voodootikigod).
+
 Other
 -----
 Made by Alex Scheel Meyer. Released to the public domain.
