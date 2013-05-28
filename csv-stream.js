@@ -33,6 +33,7 @@ function CSVToArray( strData, strDelimiter ){
 	// Keep looping over the regular expression matches
 	// until we can no longer find a match.
 	while (arrMatches = objPattern.exec( strData )){
+
 		// Get the delimiter that was found.
 		var strMatchedDelimiter = arrMatches[ 1 ];
 		// Check to see if the given delimiter has a length
@@ -48,6 +49,8 @@ function CSVToArray( strData, strDelimiter ){
 			// add an empty row to our data array.
 			arrData.push( [] );
 		}
+		else if((arrMatches.index===0)&&(strMatchedDelimiter===strDelimiter))
+			arrData[arrData.length-1].push('');		//this is to fix extra item when line starts with delimiter (thus an implicit empty item is indicated)
 
 
 		// Now that we have our delimiter out of the way,
@@ -109,7 +112,7 @@ function splitNewlines(str){
 
 //this is to create a custom constructor that hopefully will trigger the V8 "hidden classes" feature for maximum performance
 function makeItem(headers){
-	var setString='  if(args.length!=='+headers.length+')throw "bad number of args";';
+    var setString='  if(args.length!=='+headers.length+')throw new Error("bad number of args("+args.length+")");\n';                                                                                      
 	for(var h=0;h<headers.length;h++){
 		var name=headers[h];
 		setString+='  this["'+name+'"]=args['+h+'];\n';
@@ -136,7 +139,7 @@ var CSVStream=module.exports=function(options){
 require('util').inherits(CSVStream,require('stream'));
 
 CSVStream.prototype.emitLine=function(line){
-	var data=CSVToArray(line,this.options.delimiter)[0]; 
+	var data=CSVToArray(line,this.options.delimiter)[0];
 
 	if(this.options.headers){
 		if(this.headers===null){
