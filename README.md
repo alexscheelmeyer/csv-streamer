@@ -4,7 +4,7 @@ CSV-streamer
 This is code for reading CSV files. It is very simple and only tries to fill one single need : if someone hands you a CSV file and you
 want to read it into your code for further processing.
 
-It has no dependencies, except for [Mocha](http://visionmedia.github.io/mocha/) if you want to run the tests.
+It has no dependencies, except for [Mocha](http://mochajs.org/) if you want to run the tests.
 
 The API is designed as a readable and writeable stream, making it possible to use it as part of a "pipe"-chain. Other benefits are great performance
 and simple but flexible interface.
