@@ -13,7 +13,12 @@
     "test": "mocha"
   },
   "dependencies": {},
-  "devDependencies": {},
+  "devDependencies": {
+    "eslint": "3.17.1",
+    "eslint-config-cerebral": "0.0.14",
+    "eslint-plugin-import": "2.2.0",
+    "mocha": "3.2.0"
+  },
   "optionalDependencies": {},
   "engines": {
     "node": ">= 0.8"
