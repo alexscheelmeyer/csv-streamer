@@ -44,6 +44,10 @@ object :
 var csv=new CSVStream({headers:true,delimiter:'\t'});
 ```
 
+In some cases you are offloading the data to an async destination and for this you can use the `asyncdata` event instead of the regular `data` event. 
+It will provide a callback as the second parameter and you will not receive futher data before calling that to acknowledge you are done processing
+the data.
+
 If you are so unlucky that you have CSV in a string only, you should look into wrapping the string in a stream API and then pipe that into the
 CSV stream. Something like [this](http://technosophos.com/content/using-string-stream-reader-nodejs) (not tested).
 
