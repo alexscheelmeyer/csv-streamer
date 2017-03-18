@@ -126,24 +126,53 @@ const CSVStream = module.exports = function CSVStream(options) {
   if (options.headers) this.options.headers = true;
 
   this.buffer = '';
+  this.queue = [];
   this.headers = null;
   this.Item = {};
 };
 
 require('util').inherits(CSVStream, require('stream'));
 
-CSVStream.prototype.emitLine = function emitLine(line) {
+CSVStream.prototype.addToQueue = function addToQueue(lines) {
+  if (this.queue.length === 0) {
+    this.queue = lines;
+    const doEmit = () => {
+      if (this.queue.length > 0) {
+        const line = this.queue.shift();
+        this.emitLine(line, (err) => {
+          if (err) {
+            this.emit('error', err);
+          }
+          doEmit();
+        });
+      }
+    };
+    doEmit();
+  } else {
+    this.queue = this.queue.concat(lines);
+  }
+};
+
+CSVStream.prototype.emitLine = function emitLine(line, callback) {
   const data = CSVToArray(line, this.options.delimiter)[0];
+
+  const emitData = (value, cb) => {
+    this.emit('data', value);
+    if (this.listenerCount('asyncdata') > 0) {
+      this.emit('asyncdata', value, cb);
+    } else cb(null);
+  };
 
   if (this.options.headers) {
     if (this.headers === null) {
       this.headers = data;
       this.emit('headers', data);
       this.Item = makeItem(this.headers);
+      callback(null);
     } else {
-      this.emit('data', new this.Item(data));
+      emitData(new this.Item(data), callback);
     }
-  } else this.emit('data', data);
+  } else emitData(data, callback);
 };
 
 
@@ -153,18 +182,29 @@ CSVStream.prototype.write = function write(chunk) {
 
   const lines = splitNewlines(this.buffer);
   if (lines.length > 1) {
-    for (let l = 0; l < (lines.length - 1); l++) {
-      this.emitLine(lines[l]);
-    }
+    const outLines = lines.slice(0, -1);
     this.buffer = lines[lines.length - 1];  // set buffer to remainder
+    this.addToQueue(outLines);
   }
 };
 
 CSVStream.prototype.end = function end(...args) {
+  const finished = () => {
+    this.emit('end', ...args);
+  };
+
   if (this.buffer.length > 0) {
-    this.emitLine(this.buffer);
+    // emit very last line
+    this.addToQueue([this.buffer]);
   }
 
-  this.emit('end', ...args);
+  const waitForEmptyQueue = () => {
+    if (this.queue.length === 0) {
+      finished();
+    } else {
+      setTimeout(waitForEmptyQueue, 2);
+    }
+  };
+  waitForEmptyQueue();
 };
 
