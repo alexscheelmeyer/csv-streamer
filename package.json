@@ -10,7 +10,8 @@
   },
   "main": "csv-stream.js",
   "scripts": {
-    "test": "mocha"
+    "test": "mocha",
+    "lint": "eslint */**.js"
   },
   "dependencies": {},
   "devDependencies": {
