@@ -129,6 +129,7 @@ const CSVStream = module.exports = function CSVStream(options) {
   this.queue = [];
   this.headers = null;
   this.Item = {};
+  this.firstWrite = true;
 };
 
 require('util').inherits(CSVStream, require('stream'));
@@ -177,7 +178,11 @@ CSVStream.prototype.emitLine = function emitLine(line, callback) {
 
 
 CSVStream.prototype.write = function write(chunk) {
-  const data = chunk.toString('utf8');
+  let data = chunk.toString('utf8');
+  if (this.firstWrite && data.charCodeAt(0) === 0xFEFF) {
+    data = data.slice(1);
+  }
+  this.firstWrite = false;
   this.buffer += data;
 
   const lines = splitNewlines(this.buffer);
@@ -207,4 +212,3 @@ CSVStream.prototype.end = function end(...args) {
   };
   waitForEmptyQueue();
 };
-
