@@ -105,7 +105,7 @@ function splitNewlines(str) {
 // this is to create a custom constructor that hopefully will
 // trigger the V8 "hidden classes" feature for maximum performance
 function makeItem(headers) {
-  let setString = `  if(args.length!==${headers.length})throw new Error("bad number of args("+args.length+")");\n`;
+  let setString = `  if(args.length!==${headers.length})throw new Error("Expected ${headers.length} values, but got "+args.length);\n`;
   for (let h = 0; h < headers.length; h++) {
     const name = headers[h];
     setString += `  this["${name}"]=args[${h}];\n`;
@@ -130,6 +130,7 @@ const CSVStream = module.exports = function CSVStream(options) {
   this.headers = null;
   this.Item = {};
   this.firstWrite = true;
+  this.lineCount = 0;
 };
 
 require('util').inherits(CSVStream, require('stream'));
@@ -164,6 +165,7 @@ CSVStream.prototype.emitLine = function emitLine(line, callback) {
     } else cb(null);
   };
 
+  this.lineCount++;
   if (this.options.headers) {
     if (this.headers === null) {
       this.headers = data;
@@ -171,7 +173,12 @@ CSVStream.prototype.emitLine = function emitLine(line, callback) {
       this.Item = makeItem(this.headers);
       callback(null);
     } else {
-      emitData(new this.Item(data), callback);
+      try {
+        const item = new this.Item(data);
+        emitData(item, callback);
+      } catch(e) {
+        this.emit('error', `Error at line ${this.lineCount} (${e.message})`);
+      }
     }
   } else emitData(data, callback);
 };
