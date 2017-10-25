@@ -15,7 +15,7 @@ function CSVToArray(strData, strDelimiter) {
       `(\\${strDelimiter}|\\r?\\n|\\r|^)` +
 
       // Quoted fields.
-      '(?:"([^"]*(?:""[^"]*)*)"|' +
+      '\\s*(?:"([^"]*(?:""[^"]*)*)\\s*"|' +
 
       // Standard fields.
       `([^"\\${strDelimiter}\\r\\n]*))`
@@ -176,7 +176,7 @@ CSVStream.prototype.emitLine = function emitLine(line, callback) {
       try {
         const item = new this.Item(data);
         emitData(item, callback);
-      } catch(e) {
+      } catch (e) {
         this.emit('error', `Error at line ${this.lineCount} (${e.message})`);
       }
     }
