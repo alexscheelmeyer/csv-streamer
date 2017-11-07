@@ -8,7 +8,7 @@
     "type": "git",
     "url": "git://github.com/alexscheelmeyer/csv-stream.git"
   },
-  "main": "csv-stream.js",
+  "main": "index.js",
   "scripts": {
     "test": "mocha",
     "lint": "eslint ."
@@ -18,10 +18,10 @@
     "eslint": "3.17.1",
     "eslint-config-cerebral": "0.0.14",
     "eslint-plugin-import": "2.2.0",
-    "mocha": "3.2.0"
+    "mocha": "4.0.1"
   },
   "optionalDependencies": {},
   "engines": {
-    "node": ">= 0.8"
+    "node": ">= 6.9.1"
   }
 }

@@ -1,4 +1,4 @@
-const CSVStream = require('../csv-stream');
+const CSVStream = require('..');
 const assert = require('assert');
 
 describe('CSV Stream', () => {
