@@ -1,3 +1,4 @@
+const { Transform } = require('stream');
 
 // This is from : http://www.bennadel.com/blog/1504-Ask-Ben-Parsing-CSV-Strings-With-Javascript-Exec-Regular-Expression-Command.htm
 // This will parse a delimited string into an array of
@@ -114,30 +115,27 @@ function makeItem(headers) {
   return new Function('args', setString);
 }
 
+class CSVStream extends Transform {
+  constructor(options) {
+    super(Object.assign({}, options, { readableObjectMode: true }));
 
-const CSVStream = module.exports = function CSVStream(options) {
-  this.readable = true;
-  this.writable = true;
+    this.options = {};
+    options = options || {};
+    this.options.delimiter = options.delimiter || ',';
+    this.options.headers = false;
+    if (options.headers) this.options.headers = true;
 
-  this.options = {};
-  options = options || {};
-  this.options.delimiter = options.delimiter || ',';
-  this.options.headers = false;
-  if (options.headers) this.options.headers = true;
+    this.buffer = '';
+    this.queue = [];
+    this.headers = null;
+    this.Item = {};
+    this.firstWrite = true;
+    this.lineCount = 0;
+  }
 
-  this.buffer = '';
-  this.queue = [];
-  this.headers = null;
-  this.Item = {};
-  this.firstWrite = true;
-  this.lineCount = 0;
-};
+  addToQueue(lines, callback) {
+    this.queue = this.queue.concat(lines);
 
-require('util').inherits(CSVStream, require('stream'));
-
-CSVStream.prototype.addToQueue = function addToQueue(lines) {
-  if (this.queue.length === 0) {
-    this.queue = lines;
     const doEmit = () => {
       if (this.queue.length > 0) {
         const line = this.queue.shift();
@@ -147,75 +145,64 @@ CSVStream.prototype.addToQueue = function addToQueue(lines) {
           }
           doEmit();
         });
-      }
+      } else if (callback) callback(null);
     };
     doEmit();
-  } else {
-    this.queue = this.queue.concat(lines);
   }
-};
 
-CSVStream.prototype.emitLine = function emitLine(line, callback) {
-  const data = CSVToArray(line, this.options.delimiter)[0];
+  emitLine(line, callback) {
+    const data = CSVToArray(line, this.options.delimiter)[0];
 
-  const emitData = (value, cb) => {
-    this.emit('data', value);
-    if (this.listenerCount('asyncdata') > 0) {
-      this.emit('asyncdata', value, cb);
-    } else cb(null);
-  };
+    const emitData = (value, cb) => {
+      this.push(value);
+      if (this.listenerCount('asyncdata') > 0) {
+        this.emit('asyncdata', value, cb);
+      } else cb(null);
+    };
 
-  this.lineCount++;
-  if (this.options.headers) {
-    if (this.headers === null) {
-      this.headers = data;
-      this.emit('headers', data);
-      this.Item = makeItem(this.headers);
-      callback(null);
-    } else {
-      try {
-        const item = new this.Item(data);
-        emitData(item, callback);
-      } catch (e) {
-        this.emit('error', `Error at line ${this.lineCount} (${e.message})`);
+    this.lineCount++;
+    if (this.options.headers) {
+      if (this.headers === null) {
+        this.headers = data;
+        this.emit('headers', data);
+        this.Item = makeItem(this.headers);
+        callback(null);
+      } else {
+        try {
+          const item = new this.Item(data);
+          emitData(item, callback);
+        } catch (e) {
+          this.emit('error', `Error at line ${this.lineCount} (${e.message})`);
+          callback(null);
+        }
       }
+    } else emitData(data, callback);
+  }
+
+  _transform(chunk, encoding, callback) {
+    let data = chunk.toString('utf8');
+    if (this.firstWrite && data.charCodeAt(0) === 0xFEFF) {
+      data = data.slice(1);
     }
-  } else emitData(data, callback);
-};
+    this.firstWrite = false;
+    this.buffer += data;
 
-
-CSVStream.prototype.write = function write(chunk) {
-  let data = chunk.toString('utf8');
-  if (this.firstWrite && data.charCodeAt(0) === 0xFEFF) {
-    data = data.slice(1);
-  }
-  this.firstWrite = false;
-  this.buffer += data;
-
-  const lines = splitNewlines(this.buffer);
-  if (lines.length > 1) {
-    const outLines = lines.slice(0, -1);
-    this.buffer = lines[lines.length - 1];  // set buffer to remainder
-    this.addToQueue(outLines);
-  }
-};
-
-CSVStream.prototype.end = function end(...args) {
-  const finished = () => {
-    this.emit('end', ...args);
-  };
-
-  if (this.buffer.length > 0) {
-    // emit very last line
-    this.addToQueue([this.buffer]);
-  }
-
-  const waitForEmptyQueue = () => {
-    if (this.queue.length === 0) {
-      finished();
+    const lines = splitNewlines(this.buffer);
+    if (lines.length > 1) {
+      const outLines = lines.slice(0, -1);
+      this.buffer = lines[lines.length - 1];  // set buffer to remainder
+      this.addToQueue(outLines, callback);
     } else {
-      setTimeout(waitForEmptyQueue, 2);
+      callback(null);
     }
-  };
-  waitForEmptyQueue();
-};
+  }
+
+  _flush(callback) {
+    if (this.buffer.length > 0) {
+      // emit very last line
+      this.addToQueue([this.buffer], callback);
+    } else callback(null);
+  }
+}
+
+module.exports = CSVStream;

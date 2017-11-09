@@ -3,14 +3,15 @@ const CSVStream = require('..');
 const assert = require('assert');
 
 describe('CSV Stream', () => {
-  it('should allow callbacks in data', (done) => {
-    const csv = new CSVStream();
+  it('should allow async data', (done) => {
+    const csv = new CSVStream({ headers: true });
     let delayedLines = 0;
     let seenLines = 0;
     csv.on('end', () => {
       assert.equal(delayedLines, 3);
       done();
     });
+    csv.on('data', () => {});
     csv.on('asyncdata', (line, next) => {
       assert.equal(delayedLines, seenLines);
 
