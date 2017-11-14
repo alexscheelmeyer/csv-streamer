@@ -1,14 +1,14 @@
 const fs = require('fs');
-const CSVStream = require('..');
+const csv = require('..');
 const assert = require('assert');
 
 describe('CSV Stream', () => {
   it('should support quoted strings with escaped quotes inside', (done) => {
-    const csv = new CSVStream({ headers: true });
-    csv.on('end', done);
-    csv.on('data', (line) => {
+    const reader = new csv.Reader();
+    reader.on('end', done);
+    reader.on('data', (line) => {
       assert.deepEqual(line, { Id: '12345', Description: 'hello "world"!', Random: '42' });
     });
-    fs.createReadStream(`${__dirname}/escaped.csv`).pipe(csv);
+    fs.createReadStream(`${__dirname}/escaped.csv`).pipe(reader);
   });
 });

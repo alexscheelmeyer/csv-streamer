@@ -1,3 +1,5 @@
+const fs = require('fs');
+const zlib = require('zlib');
 const { Transform } = require('stream');
 
 // This is from : http://www.bennadel.com/blog/1504-Ask-Ben-Parsing-CSV-Strings-With-Javascript-Exec-Regular-Expression-Command.htm
@@ -122,8 +124,8 @@ class CSVStream extends Transform {
     this.options = {};
     options = options || {};
     this.options.delimiter = options.delimiter || ',';
-    this.options.headers = false;
-    if (options.headers) this.options.headers = true;
+    this.options.headers = true;
+    if (options.headers !== undefined) this.options.headers = options.headers;
 
     this.buffer = '';
     this.queue = [];
@@ -205,4 +207,24 @@ class CSVStream extends Transform {
   }
 }
 
-module.exports = CSVStream;
+function load(filename) {
+  const fileStream = fs.createReadStream(filename);
+  const stream = filename.endsWith('.gz') ?
+    fileStream.pipe(zlib.createGunzip()) :
+    fileStream;
+
+  return new Promise((resolve) => {
+    const csv = new CSVStream();
+    const lines = [];
+    csv.on('end', () => resolve(lines));
+    csv.on('error', (err) => reject(err));
+    csv.on('data', (line) => lines.push(line));
+    stream.pipe(csv);
+  });
+}
+
+
+module.exports = {
+  load,
+  Reader: CSVStream,
+};

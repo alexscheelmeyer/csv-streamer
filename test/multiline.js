@@ -1,25 +1,25 @@
 const fs = require('fs');
-const CSVStream = require('..');
+const csv = require('..');
 const assert = require('assert');
 
 describe('CSV Stream', () => {
   it('should support multiple lines', (done) => {
-    const csv = new CSVStream({ headers: true });
+    const reader = new csv.Reader();
     let headersSent = false;
     let dataSent = false;
     let count = 0;
-    csv.on('end', () => {
+    reader.on('end', () => {
       assert.ok(headersSent);
       assert.ok(dataSent);
       assert.equal(count, 3);
       done();
     });
-    csv.on('headers', (headers) => {
+    reader.on('headers', (headers) => {
       assert.deepEqual(headers, ['col1', 'col2', 'col3', 'col4']);
       assert.ok(!headersSent);
       headersSent = true;
     });
-    csv.on('data', (line) => {
+    reader.on('data', (line) => {
       switch (count) {
         case 0:
           assert.deepEqual(line, { col1: 1, col2: 2, col3: 3, col4: 4 });
@@ -36,6 +36,6 @@ describe('CSV Stream', () => {
       count++;
       dataSent = true;
     });
-    fs.createReadStream(`${__dirname}/multiline.csv`).pipe(csv);
+    fs.createReadStream(`${__dirname}/multiline.csv`).pipe(reader);
   });
 });

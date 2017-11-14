@@ -1,18 +1,18 @@
 const fs = require('fs');
-const CSVStream = require('..');
+const csv = require('..');
 const assert = require('assert');
 
 describe('CSV Stream', () => {
   it('should allow async data', (done) => {
-    const csv = new CSVStream({ headers: true });
+    const reader = new csv.Reader();
     let delayedLines = 0;
     let seenLines = 0;
-    csv.on('end', () => {
+    reader.on('end', () => {
       assert.equal(delayedLines, 3);
       done();
     });
-    csv.on('data', () => {});
-    csv.on('asyncdata', (line, next) => {
+    reader.on('data', () => {});
+    reader.on('asyncdata', (line, next) => {
       assert.equal(delayedLines, seenLines);
 
       seenLines++;
@@ -21,6 +21,6 @@ describe('CSV Stream', () => {
         next();
       }, 100);
     });
-    fs.createReadStream(`${__dirname}/multiline.csv`).pipe(csv);
+    fs.createReadStream(`${__dirname}/multiline.csv`).pipe(reader);
   });
 });

@@ -2,15 +2,27 @@
   "author": "Alex Scheel Meyer (http://www.linkedin.com/in/alexscheelmeyer)",
   "name": "csv-streamer",
   "description": "CSV reader with Node Stream API",
-  "version": "0.2.4",
+  "version": "1.0.0",
   "homepage": "https://github.com/alexscheelmeyer/csv-stream",
   "repository": {
     "type": "git",
     "url": "git://github.com/alexscheelmeyer/csv-stream.git"
   },
   "main": "index.js",
+  "nyc": {
+    "check-coverage": true,
+    "lines": 100,
+    "statements": 100,
+    "functions": 100,
+    "branches": 100,
+    "reporter": [
+      "lcov",
+      "text",
+      "text-summary"
+    ]
+  },
   "scripts": {
-    "test": "mocha",
+    "test": "nyc mocha test",
     "lint": "eslint ."
   },
   "dependencies": {},
@@ -18,7 +30,8 @@
     "eslint": "3.17.1",
     "eslint-config-cerebral": "0.0.14",
     "eslint-plugin-import": "2.2.0",
-    "mocha": "4.0.1"
+    "mocha": "4.0.1",
+    "nyc": "11.3.0"
   },
   "optionalDependencies": {},
   "engines": {
