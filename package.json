@@ -2,7 +2,7 @@
   "author": "Alex Scheel Meyer (http://www.linkedin.com/in/alexscheelmeyer)",
   "name": "csv-streamer",
   "description": "CSV reader with Node Stream API",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "homepage": "https://github.com/alexscheelmeyer/csv-stream",
   "repository": {
     "type": "git",

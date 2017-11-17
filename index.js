@@ -33,8 +33,19 @@ function CSVToArray(strData, strDelimiter) {
   let arrMatches = null;
   // Keep looping over the regular expression matches
   // until we can no longer find a match.
+  let pos = 0;
   // eslint-disable-next-line no-cond-assign
   while (arrMatches = objPattern.exec(strData)) {
+    // if the pos has moved further than expected, we skipped
+    // some bad data
+    if (arrMatches.index > pos) {
+      const skipped = strData.substring(pos, arrMatches.index).trim();
+      if (skipped.length > 0) {
+        throw new Error(`bad data was skipped (${strData.substr(pos, arrMatches.index)})`);
+      }
+    }
+    pos = arrMatches.index + arrMatches[0].length;
+
     // Get the delimiter that was found.
     const strMatchedDelimiter = arrMatches[1];
     // Check to see if the given delimiter has a length
@@ -117,7 +128,7 @@ function makeItem(headers) {
   return new Function('args', setString);
 }
 
-class CSVStream extends Transform {
+class CSVReader extends Transform {
   constructor(options) {
     super(Object.assign({}, options, { readableObjectMode: true }));
 
@@ -153,7 +164,13 @@ class CSVStream extends Transform {
   }
 
   emitLine(line, callback) {
-    const data = CSVToArray(line, this.options.delimiter)[0];
+    let data;
+    try {
+      data = CSVToArray(line, this.options.delimiter)[0];
+    } catch (e) {
+      callback(e.message);
+      return;
+    }
 
     const emitData = (value, cb) => {
       this.push(value);
@@ -202,7 +219,9 @@ class CSVStream extends Transform {
   _flush(callback) {
     if (this.buffer.length > 0) {
       // emit very last line
-      this.addToQueue([this.buffer], callback);
+      this.addToQueue([this.buffer], () => {
+        callback(null);
+      });
     } else callback(null);
   }
 }
@@ -213,8 +232,8 @@ function load(filename) {
     fileStream.pipe(zlib.createGunzip()) :
     fileStream;
 
-  return new Promise((resolve) => {
-    const csv = new CSVStream();
+  return new Promise((resolve, reject) => {
+    const csv = new CSVReader();
     const lines = [];
     csv.on('end', () => resolve(lines));
     csv.on('error', (err) => reject(err));
@@ -223,8 +242,38 @@ function load(filename) {
   });
 }
 
+function escapeField(value) {
+  if (!value) {
+    return '';
+  }
+
+  if (typeof value === 'string') {
+    return `"${value.replace(/"/g, '""')}"`;
+  }
+
+  return value;
+}
+
+function save(filename, data, keys) {
+  if (data.length === 0) throw new Error('no data to save');
+  if (keys === undefined) keys = Object.keys(data[0]);
+
+  return new Promise((resolve) => {
+    const out = fs.createWriteStream(filename);
+    out.on('finish', resolve);
+
+    out.write(`${keys.join(',')}\n`);
+    for (const row in data) {
+      out.write(`${keys.map((key) => escapeField(row[key])).join(',')}\n`);
+    }
+
+    out.end();
+  });
+}
+
 
 module.exports = {
+  Reader: CSVReader,
   load,
-  Reader: CSVStream,
+  save,
 };
