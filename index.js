@@ -226,14 +226,14 @@ class CSVReader extends Transform {
   }
 }
 
-function load(filename) {
+function load(filename, options) {
   const fileStream = fs.createReadStream(filename);
   const stream = filename.endsWith('.gz') ?
     fileStream.pipe(zlib.createGunzip()) :
     fileStream;
 
   return new Promise((resolve, reject) => {
-    const csv = new CSVReader();
+    const csv = new CSVReader(options);
     const lines = [];
     csv.on('end', () => resolve(lines));
     csv.on('error', (err) => reject(err));
