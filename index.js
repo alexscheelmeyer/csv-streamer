@@ -243,7 +243,7 @@ function load(filename, options) {
 }
 
 function escapeField(value) {
-  if (!value) {
+  if (value === undefined || value === null) {
     return '';
   }
 
@@ -263,7 +263,7 @@ function save(filename, data, keys) {
     out.on('finish', resolve);
 
     out.write(`${keys.join(',')}\n`);
-    for (const row in data) {
+    for (const row of data) {
       out.write(`${keys.map((key) => escapeField(row[key])).join(',')}\n`);
     }
 
