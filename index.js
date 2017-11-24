@@ -59,7 +59,7 @@ function CSVToArray(strData, strDelimiter) {
     } else if ((arrMatches.index === 0) && (strMatchedDelimiter === strDelimiter)) {
       // this is to fix extra item when line starts with delimiter
       // (thus an implicit empty item is indicated)
-      arrData[arrData.length - 1].push('');
+      arrData[arrData.length - 1].push(null);
     }
 
 
@@ -76,7 +76,7 @@ function CSVToArray(strData, strDelimiter) {
         );
     } else {
       // We found a non-quoted value.
-      strMatchedValue = arrMatches[3];
+      strMatchedValue = (arrMatches[3].length > 0) ? arrMatches[3] : null;
     }
 
 
@@ -254,6 +254,10 @@ function escapeField(value) {
   return value;
 }
 
+function writeLine(out, keys, data) {
+  out.write(`${keys.map((key) => escapeField(data[key])).join(',')}\n`);
+}
+
 function save(filename, data, keys) {
   if (data.length === 0) throw new Error('no data to save');
   if (keys === undefined) keys = Object.keys(data[0]);
@@ -264,7 +268,7 @@ function save(filename, data, keys) {
 
     out.write(`${keys.join(',')}\n`);
     for (const row of data) {
-      out.write(`${keys.map((key) => escapeField(row[key])).join(',')}\n`);
+      writeLine(out, keys, row);
     }
 
     out.end();
@@ -276,4 +280,5 @@ module.exports = {
   Reader: CSVReader,
   load,
   save,
+  writeLine,
 };

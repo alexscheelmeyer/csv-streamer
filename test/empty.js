@@ -18,7 +18,7 @@ describe('CSV Stream', () => {
       headersSent = true;
     });
     reader.on('data', (line) => {
-      assert.deepEqual(line, { col1: '', col2: '', col3: 3, col4: '' });
+      assert.deepEqual(line, { col1: null, col2: null, col3: null, col4: null });
       assert.ok(!dataSent);
       dataSent = true;
     });
