@@ -7,6 +7,7 @@ describe('CSV Stream', () => {
     const reader = new csv.Reader({ delimiter: '\t' });
     let headersSent = false;
     let dataSent = false;
+    let lineNum = 0;
     reader.on('end', () => {
       assert.ok(headersSent);
       assert.ok(dataSent);
@@ -17,9 +18,19 @@ describe('CSV Stream', () => {
       headersSent = true;
     });
     reader.on('data', (line) => {
-      assert.deepEqual(line, { col1: 1, col2: 2, col3: 3, col4: 4 });
-      assert.ok(!dataSent);
+      switch(lineNum) {
+        case 0:
+          assert.deepEqual(line, { col1: 1, col2: 2, col3: 3, col4: 4 });
+          assert.ok(!dataSent);
+          break;
+        case 1:
+          assert.deepEqual(line, { col1: 1, col2: null, col3: 3, col4: null });
+          break;
+        default:
+          assert.ok(false);
+      }
       dataSent = true;
+      lineNum++;
     });
     fs.createReadStream(`${__dirname}/delimiter.tsv`).pipe(reader);
   });

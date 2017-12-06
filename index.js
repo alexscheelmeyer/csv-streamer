@@ -18,7 +18,7 @@ function CSVToArray(strData, strDelimiter) {
       `(\\${strDelimiter}|\\r?\\n|\\r|^)` +
 
       // Quoted fields.
-      '\\s*(?:"([^"]*(?:""[^"]*)*)\\s*"|' +
+      `[^\\S\\${strDelimiter}]*(?:"([^"]*(?:""[^"]*)*)\\s*"|` +
 
       // Standard fields.
       `([^"\\${strDelimiter}\\r\\n]*))`
