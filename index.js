@@ -149,18 +149,22 @@ class CSVReader extends Transform {
   addToQueue(lines, callback) {
     this.queue = this.queue.concat(lines);
 
-    const doEmit = () => {
+    const doEmit = (stackDepth) => {
       if (this.queue.length > 0) {
         const line = this.queue.shift();
         this.emitLine(line, (err) => {
           if (err) {
             this.emit('error', err);
           }
-          doEmit();
+          if (stackDepth < 256) {
+            doEmit(stackDepth + 1);
+          } else {
+            process.nextTick(() => doEmit(0));
+          }
         });
       } else if (callback) callback(null);
     };
-    doEmit();
+    doEmit(0);
   }
 
   emitLine(line, callback) {

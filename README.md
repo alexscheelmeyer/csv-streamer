@@ -20,9 +20,9 @@ Usage
 Usually you just want to load that CSV-file :
 
 ```javascript
-var fs=require('fs');
-var CSVStream=require('csv-streamer');
-var csv=new CSVStream({headers:true});
+const fs=require('fs');
+const CSVStream=require('csv-streamer').Reader;
+const csv=new CSVStream({ headers: true });
 
 csv.on('data',function(line){
 	//do something with the data
