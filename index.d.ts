@@ -19,7 +19,7 @@ class CSVReader extends Transform {
   emitLine(line: string, callback: (error: string | null) => void): void;
 }
 
-export interface Reader extends CSVReader {}
+export class Reader extends CSVReader {}
 
 export declare function load(filename: string, options?: CSVReaderOptions): Promise<Array<Record<string, string>>>;
 
