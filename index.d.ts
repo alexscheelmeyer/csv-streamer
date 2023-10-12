@@ -1,3 +1,5 @@
+import { Transform } from "node:stream";
+
 export interface CSVReaderOptions {
   delimiter?: "," | (string & {});
   headers?: boolean;
